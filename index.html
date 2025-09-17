@@ -4,13 +4,7 @@
   <meta charset="UTF-8" />
   <title>TEST PERSONNALITÉ MAJI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script type="module">
-    import emailjs from 'https://cdn.emailjs.com/dist/email.min.mjs';
-    window.emailjs = emailjs;
-    emailjs.init("lvSCbMjI4S98izJHf");
-  </script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
     #timer { font-weight: bold; font-size: 1.2em; color: red; }
     #form-mail { display: none; }
     #result-message { font-size: 1.1em; color: green; margin-top: 20px; }
@@ -19,7 +13,7 @@
 <body>
   <div id="intro">
     <h1>TEST PERSONNALITÉ MAJI</h1>
-    <p>Vous avez 20 secondes par question. Entrez votre nom, puis cliquez sur "Démarrer".</p>
+    <p>Vous avez 20 secondes par question. Entrez votre nom, puis cliquez sur "Démarrer" pour commencer.</p>
     <input type="text" id="user-name" placeholder="Nom et prénom" style="margin-bottom:10px; width: 300px;"><br>
     <button id="start-button">Démarrer</button>
     <p id="name-error" style="color:red;"></p>
@@ -38,7 +32,9 @@
   <script type="module">
     import emailjs from 'https://cdn.emailjs.com/dist/email.min.mjs';
     window.emailjs = emailjs;
-    emailjs.init("lvSCbMjI4S98izJHf");
+
+    const startButton = document.getElementById("start-button");
+    const validateButton = document.getElementById("validate-button");
 
     const questions = [
       { question: "Quel est le nombre suivant dans la série : 2, 4, 8, 16, ?", choices: ["18", "24", "32", "20", "30"], answer: "32" },
@@ -47,23 +43,19 @@
       { question: "Quel est l’anagramme correcte de ‘chien’ ?", choices: ["niche", "chine", "hienc", "ceinh", "chin"], answer: "niche" },
       { question: "Si tous les chats sont des mammifères, et que certains mammifères sont gris, peut-on conclure que certains chats sont gris ?", choices: ["Oui", "Non", "Parfois", "Toujours", "Impossible à dire"], answer: "Impossible à dire" },
       { question: "Quelle est la moyenne de ces nombres : 10, 20, 30, 40, 50 ?", choices: ["25", "30", "35", "40", "45"], answer: "30" },
-      { question: "Quel mot est le plus différent des autres : couteau, fourchette, cuillère, assiette, verre ?", choices: ["couteau", "fourchette", "cuillère", "assiette", "verre"], answer: "assiette" },
-      { question: "Quel nombre complète la suite : 1, 4, 9, 16, 25, ?", choices: ["36", "30", "28", "32", "40"], answer: "36" },
-      { question: "Combien y a-t-il de triangles dans un pentagone si on relie chaque sommet aux autres ?", choices: ["10", "20", "35", "25", "30"], answer: "35" },
-      { question: "Si UN = 21, DEUX = 42, TROIS = ?", choices: ["63", "54", "51", "60", "66"], answer: "63" },
-      { question: "Quelle est la racine carrée de 144 ?", choices: ["10", "12", "14", "16", "18"], answer: "12" },
-      { question: "Si les lettres A=1, B=2, C=3... combien vaut le mot MAJI ?", choices: ["34", "39", "42", "36", "33"], answer: "34" },
-      { question: "Quel est le mot qui complète logiquement : mer, mère, maire, ?", choices: ["mire", "mari", "mare", "mirette", "mir"], answer: "mare" },
-      { question: "Dans une horloge, combien de fois les aiguilles se superposent-elles en 12h ?", choices: ["11", "12", "22", "24", "10"], answer: "11" },
-      { question: "Quel est le résultat de : (3 × 4) + (6 ÷ 2) ?", choices: ["15", "18", "12", "20", "14"], answer: "18" }
+      { question: "Quel est le mot le plus différent : couteau, fourchette, cuillère, assiette, verre ?", choices: ["couteau", "fourchette", "cuillère", "assiette", "verre"], answer: "assiette" }
     ];
 
     let index = 0;
     let score = 0;
-    let timer, countdown;
+    let timer;
+    let countdown;
     const maxTime = 20;
 
-    document.getElementById("start-button").addEventListener("click", () => {
+    startButton.addEventListener("click", startTest);
+    validateButton.addEventListener("click", submitAnswer);
+
+    function startTest() {
       const name = document.getElementById("user-name").value.trim();
       if (!name) {
         document.getElementById("name-error").innerText = "Veuillez entrer votre nom.";
@@ -72,9 +64,7 @@
       document.getElementById("name-error").innerText = "";
       document.getElementById("intro").style.display = "none";
       showQuestion();
-    });
-
-    document.getElementById("validate-button").addEventListener("click", submitAnswer);
+    }
 
     function showQuestion() {
       if (index >= questions.length) {
@@ -100,12 +90,13 @@
     function submitAnswer() {
       clearTimeout(timer);
       clearInterval(countdown);
+      const current = questions[index];
       let userAnswer = document.querySelector('input[name="answer"]:checked')?.value || "";
-      if (userAnswer.toLowerCase() === questions[index].answer.toLowerCase()) {
+      if (userAnswer.toLowerCase() === current.answer.toLowerCase()) {
         score++;
         document.getElementById("feedback").innerText = "Correct !";
       } else {
-        document.getElementById("feedback").innerText = "Faux. Réponse attendue : " + questions[index].answer;
+        document.getElementById("feedback").innerText = "Faux. Réponse attendue : " + current.answer;
       }
       index++;
       setTimeout(showQuestion, 1000);
@@ -119,7 +110,6 @@
         document.getElementById("timer").innerText = `Temps restant : ${timeLeft}s`;
         if (timeLeft <= 0) clearInterval(countdown);
       }, 1000);
-
       timer = setTimeout(() => {
         document.getElementById("feedback").innerText = "Temps écoulé ! Réponse attendue : " + questions[index].answer;
         index++;
@@ -129,28 +119,28 @@
 
     function finishTest() {
       document.getElementById("question-block").style.display = "none";
-      let nom = document.getElementById("user-name").value.trim();
 
-      let profil = "", qi = 100;
-      if (score <= 5) {
-        profil = "Profil logique faible, attention dispersée."; qi = 80;
-      } else if (score <= 10) {
-        profil = "Profil moyen, capacité de raisonnement correcte."; qi = 100;
-      } else {
-        profil = "Profil logique fort, excellente attention et mémoire."; qi = 120;
-      }
+      const name = document.getElementById("user-name").value.trim();
+      const profil = score <= 5 ? "Profil logique faible" : score <= 6 ? "Profil moyen" : "Profil logique fort";
+      const qi = score <= 5 ? 80 : score <= 6 ? 100 : 120;
 
-      const message = { nom: nom, score: score, qi: qi, profil: profil };
+      const message = {
+        nom: name,
+        score: score,
+        profil: profil,
+        qi: qi
+      };
 
+      emailjs.init("lvSCbMjI4S98izJHf");
       emailjs.send("service_37qqsvm", "template_y022b36", message)
-        .then(res => {
-          console.log("✅ Email envoyé :", res.status, res.text);
+        .then((res) => {
+          console.log("Email envoyé !", res.status);
         })
-        .catch(err => {
-          console.error("❌ Échec de l'envoi :", err);
+        .catch((err) => {
+          console.error("Erreur EmailJS", err);
         });
 
-      document.getElementById("result-message").innerText = `Merci ${nom}, votre test est terminé. Score : ${score}/15. Vos résultats ont été transmis.`;
+      document.getElementById("result-message").innerText = `Merci ${name}, votre test est terminé. Score : ${score}/${questions.length}. Vos résultats ont été transmis.`;
     }
   </script>
 </body>
